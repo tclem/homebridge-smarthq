@@ -666,6 +666,7 @@ export class SmartHQPlatform implements DynamicPlatformPlugin {
             case 'Microwave':
               await this.createSmartHQMicrowave(userId, device, details, features)
               break
+            case 'Coffee Brewer':
             case 'Coffee Maker':
             case 'Espresso Maker':
               await this.createSmartHQCoffeeMaker(userId, device, details, features)

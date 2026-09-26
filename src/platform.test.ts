@@ -346,6 +346,7 @@ describe('smartHQPlatform appliance type dispatch', () => {
     const platform = new SmartHQPlatform(mockLog, config, mockApi)
 
     const spies = {
+      coffeeMaker: vi.spyOn(platform as any, 'createSmartHQCoffeeMaker').mockResolvedValue(undefined),
       dishwasher: vi.spyOn(platform as any, 'createSmartHQDishWasher').mockResolvedValue(undefined),
       dishDrawer: vi.spyOn(platform as any, 'createSmartHQDishDrawer').mockResolvedValue(undefined),
     }
@@ -376,8 +377,15 @@ describe('smartHQPlatform appliance type dispatch', () => {
     expect(spies.dishDrawer).not.toHaveBeenCalled()
   })
 
+  it('sets up a Coffee Brewer with the coffee maker handler', async () => {
+    const spies = await discoverOne({ applianceId: 'a-3', type: 'Coffee Brewer', nickname: 'Coffee Maker', model: 'C7CDAASP1' })
+
+    expect(spies.coffeeMaker).toHaveBeenCalledTimes(1)
+    expect(mockLog.warn).not.toHaveBeenCalledWith(expect.stringContaining('Not Supported'))
+  })
+
   it('names the type and model when it does not recognise an appliance', async () => {
-    await discoverOne({ applianceId: 'a-3', type: 'Toaster Oven', nickname: 'Toaster', model: 'TO123' })
+    await discoverOne({ applianceId: 'a-4', type: 'Toaster Oven', nickname: 'Toaster', model: 'TO123' })
 
     // Quoted, and with the model, so one pasted line is enough to add support
     expect(mockLog.warn).toHaveBeenCalledWith(expect.stringContaining('"Toaster Oven"'))
