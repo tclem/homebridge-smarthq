@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest'
 
-import { encodeCoffeeMakerBrewSettings, isCoffeeMakerBrewing } from './coffeeMaker.js'
+import {
+  DEFAULT_COFFEE_MAKER_BREW_SETTINGS,
+  encodeCoffeeMakerBrewSettings,
+  isCoffeeMakerBrewing,
+} from './coffeeMaker.js'
+
+it('defaults every brew to 10 cups, Gold strength, and 200 degrees Fahrenheit', () => {
+  expect(DEFAULT_COFFEE_MAKER_BREW_SETTINGS).toBe('04C80A')
+})
 
 describe('encodeCoffeeMakerBrewSettings', () => {
   it('encodes strength, temperature, and cups in SmartHQ command order', () => {
