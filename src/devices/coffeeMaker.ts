@@ -7,7 +7,35 @@ import type { PlatformAccessory } from 'homebridge'
 import type { SmartHQPlatform } from '../platform.js'
 import type { devicesConfig, SmartHqContext } from '../settings.js'
 
+import { ERD_TYPES } from '../settings.js'
 import { deviceBase } from './device.js'
+
+function encodeByte(value: string | undefined, name: string): string {
+  const normalized = value?.trim().replace(/^0x/i, '')
+  if (!normalized || !/^[0-9a-f]{1,2}$/i.test(normalized)) {
+    throw new Error(`Coffee Maker ${name} is unavailable or invalid: ${value ?? 'missing'}`)
+  }
+  return normalized.padStart(2, '0').toUpperCase()
+}
+
+export function encodeCoffeeMakerBrewSettings(
+  strength: string | undefined,
+  temperature: string | undefined,
+  cups: string | undefined,
+): string {
+  return [
+    encodeByte(strength, 'brew strength'),
+    encodeByte(temperature, 'brew temperature'),
+    encodeByte(cups, 'brew cups'),
+  ].join('')
+}
+
+export function isCoffeeMakerBrewing(value: string | undefined): boolean {
+  const normalized = value?.trim().replace(/^0x/i, '')
+  return normalized !== undefined
+    && /^[0-9a-f]+$/i.test(normalized)
+    && Number.parseInt(normalized, 16) !== 0
+}
 
 export class SmartHQCoffeeMaker extends deviceBase {
   constructor(
@@ -25,33 +53,32 @@ export class SmartHQCoffeeMaker extends deviceBase {
     brewValve
       .getCharacteristic(this.platform.Characteristic.Active)
       .onGet(async () => {
-        try {
-          // TODO: Implement brewing state ERD
-          return this.platform.Characteristic.Active.INACTIVE
-        } catch (error: any) {
-          this.warnLog?.(`Coffee Maker Active error: ${error?.message ?? error}`)
-          return this.platform.Characteristic.Active.INACTIVE
-        }
+        return isCoffeeMakerBrewing(await this.readErd(ERD_TYPES.CCM_IS_BREWING))
+          ? this.platform.Characteristic.Active.ACTIVE
+          : this.platform.Characteristic.Active.INACTIVE
       })
       .onSet(async (value) => {
-        try {
-          // TODO: Implement brew control ERD
-          this.debugLog(`Coffee Maker brew set to: ${value}`)
-        } catch (error: any) {
-          this.warnLog?.(`Coffee Maker brew set error: ${error?.message ?? error}`)
+        if (value === this.platform.Characteristic.Active.ACTIVE) {
+          const [strength, temperature, cups] = await Promise.all([
+            this.readErd(ERD_TYPES.CCM_BREW_STRENGTH),
+            this.readErd(ERD_TYPES.CCM_BREW_TEMPERATURE),
+            this.readErd(ERD_TYPES.CCM_BREW_CUPS),
+          ])
+          await this.writeErd(
+            ERD_TYPES.CCM_BREW_SETTINGS,
+            encodeCoffeeMakerBrewSettings(strength, temperature, cups),
+          )
+        } else {
+          await this.writeErd(ERD_TYPES.CCM_CANCEL_BREWING, true)
         }
       })
 
     brewValve
       .getCharacteristic(this.platform.Characteristic.InUse)
       .onGet(async () => {
-        try {
-          // TODO: Implement brewing state ERD
-          return this.platform.Characteristic.InUse.NOT_IN_USE
-        } catch (error: any) {
-          this.warnLog?.(`Coffee Maker InUse error: ${error?.message ?? error}`)
-          return this.platform.Characteristic.InUse.NOT_IN_USE
-        }
+        return isCoffeeMakerBrewing(await this.readErd(ERD_TYPES.CCM_IS_BREWING))
+          ? this.platform.Characteristic.InUse.IN_USE
+          : this.platform.Characteristic.InUse.NOT_IN_USE
       })
 
     // Water Level Sensor (Humidity as proxy)

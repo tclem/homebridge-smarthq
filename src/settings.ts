@@ -399,6 +399,14 @@ export const ERD_TYPES = {
   AIR_CONDITIONER_TARGET_TEMPERATURE: '0x7003' as const,
   AIR_CONDITIONER_TEMPERATURE_UNIT: '0x0007' as const,
 
+  // Cafe Coffee Maker
+  CCM_IS_BREWING: '0x9000' as const,
+  CCM_BREW_TEMPERATURE: '0x9001' as const,
+  CCM_BREW_CUPS: '0x9006' as const,
+  CCM_BREW_STRENGTH: '0x9008' as const,
+  CCM_BREW_SETTINGS: '0x900b' as const,
+  CCM_CANCEL_BREWING: '0x900c' as const,
+
   // Hood/Range Vent
   HOOD_FAN_SPEED: '0x5B00' as const,
   HOOD_LIGHT_LEVEL: '0x5B02' as const,
