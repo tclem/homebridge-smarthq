@@ -30,8 +30,6 @@ export function encodeCoffeeMakerBrewSettings(
   ].join('')
 }
 
-export const DEFAULT_COFFEE_MAKER_BREW_SETTINGS = encodeCoffeeMakerBrewSettings('04', 'C8', '0A')
-
 export function isCoffeeMakerBrewing(value: string | undefined): boolean {
   const normalized = value?.trim().replace(/^0x/i, '')
   return normalized !== undefined
@@ -61,9 +59,14 @@ export class SmartHQCoffeeMaker extends deviceBase {
       })
       .onSet(async (value) => {
         if (value === this.platform.Characteristic.Active.ACTIVE) {
+          const [strength, temperature, cups] = await Promise.all([
+            this.readErd(ERD_TYPES.CCM_BREW_STRENGTH),
+            this.readErd(ERD_TYPES.CCM_BREW_TEMPERATURE),
+            this.readErd(ERD_TYPES.CCM_BREW_CUPS),
+          ])
           await this.writeErd(
             ERD_TYPES.CCM_BREW_SETTINGS,
-            DEFAULT_COFFEE_MAKER_BREW_SETTINGS,
+            encodeCoffeeMakerBrewSettings(strength, temperature, cups),
           )
         } else {
           await this.writeErd(ERD_TYPES.CCM_CANCEL_BREWING, true)
