@@ -34,6 +34,18 @@ Homebridge plugin to integrate SmartHQ appliances into HomeKit
 - [Beta Version](https://github.com/homebridge-plugins/homebridge-smarthq/wiki/Beta-Version)
 - [Node Version](https://github.com/homebridge-plugins/homebridge-smarthq/wiki/Node-Version)
 
+### Café Coffee Maker Fork
+
+This fork implements brew and cancel controls for Café coffee makers. Install its prebuilt release on apt-packaged Homebridge hosts:
+
+```sh
+sudo hb-service add https://github.com/tclem/homebridge-smarthq/releases/download/v0.8.1-cafe.1/homebridge-plugins-homebridge-smarthq-0.8.1-cafe.1.tgz
+sudo hb-service restart
+sudo hb-service status
+```
+
+Do not install this fork from its Git source on a resource-constrained Homebridge host. Use the prebuilt release so the host does not install development dependencies or compile the plugin.
+
 ### Features
 
 - **HomeKit Controller notifications** are supported for the Opal Ice Maker. To set up, install the HomeKit Controller app and configure notifications for each respective event. Put your HomeKit Controller client secret in the plugin advanced options, and the path associated with each available notification in the Opal device options. Supported events:
