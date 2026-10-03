@@ -29,6 +29,10 @@ const TRANSIENT_NETWORK_CODES = new Set([
 const ERD_READ_ATTEMPTS = 3
 const ERD_RETRY_DELAY_MS = 500
 
+function formatErdForApi(erd: string): string {
+  return erd.toUpperCase().replace(/^0X/, '0x')
+}
+
 /**
  * ⚠️ Node tries every address a host resolves to (happy eyeballs), so a single
  * failed connect arrives as an AggregateError whose own `code` is undefined and
@@ -509,9 +513,10 @@ export abstract class deviceBase {
    * straight back out, since retrying it would only repeat the same answer.
    */
   private async getErdWithRetry(erd: string): Promise<any> {
+    const apiErd = formatErdForApi(erd)
     for (let attempt = 1; ; attempt++) {
       try {
-        return await axios.get(`/appliance/${this.getApplianceId()}/erd/${erd}`)
+        return await axios.get(`/appliance/${this.getApplianceId()}/erd/${apiErd}`)
       } catch (error: any) {
         if (attempt >= ERD_READ_ATTEMPTS || !isTransientNetworkError(error)) {
           throw error
@@ -579,14 +584,15 @@ export abstract class deviceBase {
    * Write an ERD (Electronic Refrigerator Descriptor) value to the SmartHQ API
    */
   async writeErd(erd: string, value: string | boolean): Promise<void> {
+    const apiErd = formatErdForApi(erd)
     try {
       await this.debugLog(`Writing ERD ${erd} with value: ${value}`)
       await axios
-        .post(`/appliance/${this.getApplianceId()}/erd/${erd}`, {
+        .post(`/appliance/${this.getApplianceId()}/erd/${apiErd}`, {
           kind: 'appliance#erdListEntry',
           userId: this.getUserId(),
           applianceId: this.getApplianceId(),
-          erd,
+          erd: apiErd,
           value: typeof value === 'boolean' ? (value ? '01' : '00') : value,
         })
       await this.debugLog(`Successfully wrote ERD ${erd}`)

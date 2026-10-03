@@ -124,6 +124,10 @@ describe('writeErd error handling', () => {
     await expect(device.writeErd('0x900b', '04C80A')).resolves.toBeUndefined()
 
     expect(mockedPost).toHaveBeenCalledTimes(2)
+    expect(mockedPost).toHaveBeenLastCalledWith(
+      '/appliance/appliance-1/erd/0x900B',
+      expect.objectContaining({ erd: '0x900B', value: '04C80A' }),
+    )
     expect(device.unsupportedErds.has('0x900b')).toBe(false)
     expect(device.warnLog).toHaveBeenCalledTimes(1)
   })

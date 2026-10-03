@@ -39,7 +39,7 @@ Homebridge plugin to integrate SmartHQ appliances into HomeKit
 This fork implements brew and cancel controls for Café coffee makers. Install its prebuilt release on apt-packaged Homebridge hosts:
 
 ```sh
-sudo hb-service add https://github.com/tclem/homebridge-smarthq/releases/download/v0.8.1-cafe.3/homebridge-plugins-homebridge-smarthq-0.8.1-cafe.3.tgz
+sudo hb-service add https://github.com/tclem/homebridge-smarthq/releases/download/v0.8.1-cafe.4/homebridge-plugins-homebridge-smarthq-0.8.1-cafe.4.tgz
 sudo hb-service restart
 sudo hb-service status
 ```
