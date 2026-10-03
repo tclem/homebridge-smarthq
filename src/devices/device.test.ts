@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { decodeErdString, deviceBase, isTransientNetworkError } from './device.js'
 
 vi.mock('axios', () => ({
-  default: { get: vi.fn() },
+  default: {
+    get: vi.fn(),
+    post: vi.fn(),
+  },
 }))
 
 /**
@@ -16,6 +19,7 @@ vi.mock('axios', () => ({
  */
 
 const mockedGet = vi.mocked(axios.get)
+const mockedPost = vi.mocked(axios.post)
 
 /**
  * The shape a happy-eyeballs connect failure actually arrives in: an
@@ -99,6 +103,29 @@ describe('readErd transient network handling', () => {
     await expect(device.readErd('0x9106')).resolves.toBeUndefined()
     expect(mockedGet).toHaveBeenCalledTimes(1)
     expect(device.unsupportedErds.has('0x9106')).toBe(true)
+  })
+})
+
+describe('writeErd error handling', () => {
+  beforeEach(() => {
+    mockedPost.mockReset()
+  })
+
+  it('does not let a failed write disable later commands', async () => {
+    const device = makeDevice()
+    const error = Object.assign(new Error('Request failed with status code 400'), {
+      response: { status: 400 },
+    })
+    mockedPost
+      .mockRejectedValueOnce(error)
+      .mockResolvedValueOnce({ data: {} } as any)
+
+    await expect(device.writeErd('0x900b', '04C80A')).rejects.toBe(error)
+    await expect(device.writeErd('0x900b', '04C80A')).resolves.toBeUndefined()
+
+    expect(mockedPost).toHaveBeenCalledTimes(2)
+    expect(device.unsupportedErds.has('0x900b')).toBe(false)
+    expect(device.warnLog).toHaveBeenCalledTimes(1)
   })
 })
 

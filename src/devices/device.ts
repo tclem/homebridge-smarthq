@@ -579,12 +579,6 @@ export abstract class deviceBase {
    * Write an ERD (Electronic Refrigerator Descriptor) value to the SmartHQ API
    */
   async writeErd(erd: string, value: string | boolean): Promise<void> {
-    // Check if we already know this ERD is not supported
-    if (this.unsupportedErds.has(erd)) {
-      await this.debugLog(`Skipping write to unsupported ERD ${erd}`)
-      return
-    }
-
     try {
       await this.debugLog(`Writing ERD ${erd} with value: ${value}`)
       await axios
@@ -597,15 +591,8 @@ export abstract class deviceBase {
         })
       await this.debugLog(`Successfully wrote ERD ${erd}`)
     } catch (error: any) {
-      // 400 means ERD not supported or invalid value - cache it
-      if (error?.response?.status === 400) {
-        this.unsupportedErds.add(erd)
-        if (!this.optionalErds.has(erd)) {
-          await this.debugLog(`ERD ${erd} write failed - not supported or invalid value (400) - will not retry`)
-        }
-      } else {
-        await this.warnLog(`writeErd ${erd} error: ${error?.message ?? error}`)
-      }
+      await this.warnLog(`writeErd ${erd} error: ${error?.message ?? error}`)
+      throw error
     }
   }
 
